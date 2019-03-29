@@ -2,11 +2,21 @@ package 人工智能实验.八数码搜索;
 
 enum Direction {
     //上
-    UP,
+    UP("↑"),
     //下
-    DOWN,
+    DOWN("↓"),
     //左
-    LEFT,
+    LEFT("←"),
     //右
-    RIGHT
+    RIGHT("→");
+    private String name;
+
+    Direction(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
+    }
 }

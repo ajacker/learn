@@ -9,7 +9,7 @@ public class EightPuzzle implements Cloneable {
     /**
      * 二维数组储存八数码状态
      */
-    public int[][] data;
+    int[][] data;
     /**
      * 空白格的坐标
      */
@@ -19,6 +19,15 @@ public class EightPuzzle implements Cloneable {
      * 当前状态深度
      */
     private int depth;
+
+    /**
+     * 父节点
+     */
+    private EightPuzzle parent;
+    /**
+     * 这一步操作的方向
+     */
+    private Direction direct;
 
     /**
      * 构造状态
@@ -49,6 +58,9 @@ public class EightPuzzle implements Cloneable {
                 sb.append(this.data[i][j]);
                 sb.append(" ");
             }
+            if (i == 1) {
+                sb.append(direct == null ? "" : direct);
+            }
             sb.append("\n");
         }
         return sb.toString();
@@ -57,7 +69,7 @@ public class EightPuzzle implements Cloneable {
     /**
      * 获取空格的位置
      */
-    void getPostion() {
+    void getPosition() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (this.data[i][j] == 0) {
@@ -68,9 +80,6 @@ public class EightPuzzle implements Cloneable {
         }
     }
 
-    /**
-     * setters和getters
-     */
     private void setBlankPosX(int blankPosX) {
         this.blankPosX = blankPosX;
     }
@@ -95,7 +104,23 @@ public class EightPuzzle implements Cloneable {
         this.depth = depth;
     }
 
-    public void print() {
+    void setParent(EightPuzzle parent) {
+        this.parent = parent;
+    }
+
+    EightPuzzle getParent() {
+        return this.parent;
+    }
+
+    Direction getDirect() {
+        return direct;
+    }
+
+    void setDirect(Direction direct) {
+        this.direct = direct;
+    }
+
+    void print() {
         System.out.println(this.toString());
     }
 
