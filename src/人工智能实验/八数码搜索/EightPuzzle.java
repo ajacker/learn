@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * @author ajacker
  */
-public class EightPuzzle implements Cloneable {
+public class EightPuzzle implements Cloneable, Comparable<EightPuzzle> {
     /**
      * 二维数组储存八数码状态
      */
@@ -20,6 +20,15 @@ public class EightPuzzle implements Cloneable {
      */
     private int depth;
 
+
+    /**
+     * 估计函数f(n)
+     */
+    private int evaluation;
+    /**
+     * 启发函数h(n)
+     */
+    private int misposition;
     /**
      * 父节点
      */
@@ -38,13 +47,6 @@ public class EightPuzzle implements Cloneable {
 
     EightPuzzle(int[][] data) {
         this.data = data;
-    }
-
-    /**
-     * 判断状态是否相同
-     */
-    boolean isEquals(EightPuzzle ep) {
-        return Arrays.deepEquals(this.data, ep.data);
     }
 
     /**
@@ -73,20 +75,33 @@ public class EightPuzzle implements Cloneable {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (this.data[i][j] == 0) {
-                    this.setBlankPosX(i);
-                    this.setBlankPosY(j);
+                    blankPosX = i;
+                    blankPosY = j;
                 }
             }
         }
     }
 
-    private void setBlankPosX(int blankPosX) {
-        this.blankPosX = blankPosX;
+    /**
+     * 求估计函数
+     *
+     * @param target 目标状态
+     */
+    void init(EightPuzzle target) {
+        int temp = 0;
+        //记录当前节点与目标节点差异的度量
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (data[i][j] != target.data[i][j]) {
+                    temp++;
+                }
+            }
+        }
+        this.misposition = temp;
+        //设置当前状态的估计值
+        this.evaluation = this.getDepth() + this.misposition;
     }
 
-    private void setBlankPosY(int blankPosY) {
-        this.blankPosY = blankPosY;
-    }
 
     int getBlankPosX() {
         return blankPosX;
@@ -124,33 +139,47 @@ public class EightPuzzle implements Cloneable {
         System.out.println(this.toString());
     }
 
+
     /**
      * 浅拷贝
      */
     @Override
     protected EightPuzzle clone() {
-        return new EightPuzzle(Arrays.copyOf(this.data, this.data.length));
+        EightPuzzle clone = null;
+        try {
+            clone = (EightPuzzle) super.clone();
+            clone.data = Arrays.copyOf(this.data, this.data.length);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return clone;
     }
 
     /**
      * 深拷贝
      */
     EightPuzzle depthClone() {
-        EightPuzzle tmp = new EightPuzzle();
+        EightPuzzle tmpEp = new EightPuzzle();
         for (int i = 0; i < 3; i++) {
-            System.arraycopy(this.data[i], 0, tmp.data[i], 0, 3);
+            System.arraycopy(this.data[i], 0, tmpEp.data[i], 0, 3);
         }
-        tmp.depth = this.depth;
-        return tmp;
+        tmpEp.depth = this.depth;
+        return tmpEp;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof EightPuzzle) {
-            return this.isEquals((EightPuzzle) obj);
+            EightPuzzle ep = (EightPuzzle) obj;
+            return Arrays.deepEquals(this.data, ep.data);
         } else {
             return false;
         }
     }
 
+    @Override
+    public int compareTo(EightPuzzle c) {
+        //默认排序为f(n)由小到大排序
+        return this.evaluation - c.evaluation;
+    }
 }

@@ -26,6 +26,10 @@ class Eight {
      */
     private Stack<EightPuzzle> stack = new Stack<>();
     /**
+     * A*要用的open表
+     */
+    private ArrayList<EightPuzzle> open = new ArrayList<>();
+    /**
      * 已查找过的列表
      */
     private ArrayList<EightPuzzle> searchedList = new ArrayList<>();
@@ -42,12 +46,14 @@ class Eight {
         Eight e = new Eight();
         e.depthFirstSearch();
         e.breadthFirstSearch();
+        e.AStarSearch();
     }
 
     private Eight() {
         // 初始化栈和队列，以及列表
         route.clear();
         stack.clear();
+        open.clear();
         searchedList.clear();
         queue.clear();
 
@@ -74,9 +80,11 @@ class Eight {
         // 设置栈底元素
         stack.push(ep);
         targetEp = new EightPuzzle(target);
+        ep.init(targetEp);
         scanner.close();
         // 设置队首元素
         queue.offer(ep);
+        open.add(ep);
     }
 
     /**
@@ -89,7 +97,6 @@ class Eight {
         if (!searchedList.isEmpty()) {
             searchedList.clear();
         }
-
         while (!stack.isEmpty()) {
             times++;
             // 取出栈顶元素进行查找
@@ -99,38 +106,22 @@ class Eight {
             int x = newState.getBlankPosX(), y = newState.getBlankPosY();
             searchedList.add(newState);
             // 如果找到了就停止
-            if (newState.isEquals(targetEp)) {
-                StringBuilder operation = new StringBuilder();
-                // 回朔路径
-                while (newState != null) {
-                    route.push(newState);
-                    newState = newState.getParent();
-                }
-                while (!route.isEmpty()) {
-                    EightPuzzle e = route.pop();
-                    e.print();
-                    String content = e.getDirect() == null ? "" : e.getDirect().toString();
-                    operation.append(content);
-                }
-                System.out.println("操作：" + operation.toString());
-                System.out.println("找到目标");
-                System.out.println("查找深度：" + depth);
-                System.out.println("查找次数：" + times);
+            if (searchCompleted(newState)) {
                 return;
             }
             depth++;// 增加深度
             // 尝试进行移动
-            stackMove(newState, x, y, UP);
-            stackMove(newState, x, y, RIGHT);
-            stackMove(newState, x, y, DOWN);
-            stackMove(newState, x, y, LEFT);
+            move(newState, 1, x, y, UP);
+            move(newState, 1, x, y, RIGHT);
+            move(newState, 1, x, y, DOWN);
+            move(newState, 1, x, y, LEFT);
         }
         System.out.println("没有搜索到目标状态");
         System.out.println("查找深度：" + depth);
     }
 
     /**
-     * 宽度（广度）优先搜索实现
+     * 宽度（广度）优先搜索
      */
     private void breadthFirstSearch() {
         route.clear();
@@ -148,74 +139,123 @@ class Eight {
             int x = newState.getBlankPosX(), y = newState.getBlankPosY();
             searchedList.add(newState);
             // 如果找到了就停止
-            if (newState.isEquals(targetEp)) {
-                StringBuilder operation = new StringBuilder();
-                // 回朔路径
-                while (newState != null) {
-                    route.push(newState);
-                    newState = newState.getParent();
-                }
-                while (!route.isEmpty()) {
-                    EightPuzzle e = route.pop();
-                    e.print();
-                    String content = e.getDirect() == null ? "" : e.getDirect().toString();
-                    operation.append(content);
-                }
-                System.out.println("操作：" + operation.toString());
-                System.out.println("找到目标");
-                System.out.println("查找深度：" + depth);
-                System.out.println("查找次数：" + times);
+            if (searchCompleted(newState)) {
                 return;
             }
             depth++;// 增加深度
             // 尝试进行移动
-            queueMove(newState, x, y, UP);
-            queueMove(newState, x, y, RIGHT);
-            queueMove(newState, x, y, DOWN);
-            queueMove(newState, x, y, LEFT);
+            move(newState, 2, x, y, UP);
+            move(newState, 2, x, y, RIGHT);
+            move(newState, 2, x, y, DOWN);
+            move(newState, 2, x, y, LEFT);
         }
         System.out.println("没有搜索到目标状态");
         System.out.println("查找次数：" + depth);
     }
 
-    /**
-     * 入栈方式的扩展
-     *
-     * @param newState 当前状态
-     * @param x        空格x坐标
-     * @param y        空格y坐标
-     * @param direct   移动方向
-     */
-    private void stackMove(EightPuzzle newState, int x, int y, Direction direct) {
-        EightPuzzle temp;
-        if (EightPuzzleOperator.canMove(x, y, direct)) {
-            temp = EightPuzzleOperator.movePosition(newState, direct);
-            temp.setDepth(depth);
-            // 如果没有搜索过就压入栈
-            if (!searchedList.contains(temp)) {
-                stack.push(temp);
+    private void AStarSearch() {
+        route.clear();
+        times = 0;
+        if (!searchedList.isEmpty()) {
+            searchedList.clear();
+        }
+        System.out.println("A*搜索方法路径！");
+        while (!open.isEmpty()) {
+            times++;
+            // 取出最小估计函数值进行查找
+            Collections.sort(open);
+            EightPuzzle newState = open.get(0);
+            open.remove(0);
+            depth = newState.getDepth();
+            newState.getPosition();
+            int x = newState.getBlankPosX(), y = newState.getBlankPosY();
+            searchedList.add(newState);
+            // 如果找到了就停止
+            if (searchCompleted(newState)) {
+                return;
             }
+            depth++;// 增加深度
+            // 尝试进行移动
+            move(newState, 3, x, y, UP);
+            move(newState, 3, x, y, RIGHT);
+            move(newState, 3, x, y, DOWN);
+            move(newState, 3, x, y, LEFT);
+        }
+    }
+
+    private boolean searchCompleted(EightPuzzle state) {
+        if (state.equals(targetEp)) {
+            StringBuilder operation = new StringBuilder();
+            // 回朔路径
+            while (state != null) {
+                route.push(state);
+                state = state.getParent();
+            }
+            while (!route.isEmpty()) {
+                EightPuzzle e = route.pop();
+                e.print();
+                String content = e.getDirect() == null ? "" : e.getDirect().toString();
+                operation.append(content);
+            }
+            System.out.println("操作：" + operation.toString());
+            System.out.println("找到目标");
+            System.out.println("查找深度：" + depth);
+            System.out.println("查找次数：" + times);
+            return true;
+        } else {
+            return false;
         }
     }
 
     /**
-     * 队列方式的扩展
+     * 尝试移动空白格，扩展状态
      *
      * @param newState 当前状态
+     * @param type     移动类型(1:深度优先;2:广度优先;3:A*算法)
      * @param x        空格x坐标
      * @param y        空格y坐标
      * @param direct   移动方向
      */
-    private void queueMove(EightPuzzle newState, int x, int y, Direction direct) {
+    private void move(EightPuzzle newState, int type, int x, int y, Direction direct) {
         EightPuzzle temp;
-        if (EightPuzzleOperator.canMove(x, y, direct)) {
-            temp = EightPuzzleOperator.movePosition(newState, direct);
-            temp.setDepth(depth);
-            // 如果没有搜索过就进队列
-            if (!searchedList.contains(temp)) {
-                queue.offer(temp);
-            }
+        switch (type) {
+            //深度优先
+            case 1:
+                if (EightPuzzleOperator.canMove(x, y, direct)) {
+                    temp = EightPuzzleOperator.movePosition(newState, direct);
+                    temp.setDepth(depth);
+                    // 如果没有搜索过就压入栈
+                    if (!searchedList.contains(temp)) {
+                        stack.push(temp);
+                    }
+                }
+                break;
+            //广度优先
+            case 2:
+                if (EightPuzzleOperator.canMove(x, y, direct)) {
+                    temp = EightPuzzleOperator.movePosition(newState, direct);
+                    temp.setDepth(depth);
+                    // 如果没有搜索过就进队列
+                    if (!searchedList.contains(temp)) {
+                        queue.offer(temp);
+                    }
+                }
+                break;
+            //A*算法
+            case 3:
+                if (EightPuzzleOperator.canMove(x, y, direct)) {
+                    temp = EightPuzzleOperator.movePosition(newState, direct);
+                    temp.setDepth(depth);
+                    // 如果没有搜索过就进队列
+                    if (!searchedList.contains(temp)) {
+                        temp.init(targetEp);
+                        open.add(temp);
+                    }
+                }
+                break;
+            default:
         }
+
     }
 }
 
