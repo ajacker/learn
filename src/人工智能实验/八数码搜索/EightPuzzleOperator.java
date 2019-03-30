@@ -22,10 +22,10 @@ class EightPuzzleOperator {
      * @param direction 移动方向
      * @return 移动过的新状态
      */
-    static EightPuzzle movePosition(EightPuzzle ep, Direction direction) {
+    static EightPuzzle movePosition(EightPuzzle ep, Direction direction) throws CloneNotSupportedException {
         EightPuzzle result;
         // 复制并得到空格位置
-        result = ep.depthClone();
+        result = ep.clone();
         result.getPosition();
         // 设置移动之前的为父节点，记录操作
         result.setParent(ep);

@@ -141,30 +141,46 @@ public class EightPuzzle implements Cloneable, Comparable<EightPuzzle> {
 
 
     /**
-     * 浅拷贝
+     * 深拷贝
      */
     @Override
-    protected EightPuzzle clone() {
-        EightPuzzle clone = null;
-        try {
-            clone = (EightPuzzle) super.clone();
-            clone.data = Arrays.copyOf(this.data, this.data.length);
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+    protected EightPuzzle clone() throws CloneNotSupportedException {
+        EightPuzzle clone;
+        clone = (EightPuzzle) super.clone();
+        clone.data = new int[3][3];
+        for (int i = 0; i < 3; i++) {
+            System.arraycopy(this.data[i], 0, clone.data[i], 0, 3);
         }
         return clone;
     }
 
+
     /**
-     * 深拷贝
+     * 求逆序值并判断是否不可解，逆序值同奇或者同偶才有解
+     * @param target 目标状态
+     * @return 有解：false 无解：true
      */
-    EightPuzzle depthClone() {
-        EightPuzzle tmpEp = new EightPuzzle();
+    boolean isUnSolvable(EightPuzzle target) {
+        int[] num = new int[9];
+        int[] tarNum = new int[9];
+        //对数组进行降维打击
         for (int i = 0; i < 3; i++) {
-            System.arraycopy(this.data[i], 0, tmpEp.data[i], 0, 3);
+            System.arraycopy(data[i], 0, num, 3 * i, 3);
+            System.arraycopy(target.data[i], 0, tarNum, 3 * i, 3);
         }
-        tmpEp.depth = this.depth;
-        return tmpEp;
+        int reverse = 0;
+        for (int i = 0; i < 9; i++) {
+            //遇到0跳过
+            for (int j = 0; j < i; j++) {
+                if (num[j] > num[i] && num[j] != 0 && num[i] != 0) {
+                    reverse++;
+                }
+                if (tarNum[j] > tarNum[i] && tarNum[j] != 0 && tarNum[i] != 0) {
+                    reverse++;
+                }
+            }
+        }
+        return reverse % 2 != 0;
     }
 
     @Override

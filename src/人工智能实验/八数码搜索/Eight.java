@@ -43,10 +43,14 @@ class Eight {
     private Queue<EightPuzzle> queue = new LinkedList<>();
 
     public static void main(String[] args) {
-        Eight e = new Eight();
-        e.depthFirstSearch();
-        e.breadthFirstSearch();
-        e.AStarSearch();
+        Eight eight = new Eight();
+        try {
+            eight.breadthFirstSearch();
+            eight.depthFirstSearch();
+            eight.AStarSearch();
+        } catch (CloneNotSupportedException e1) {
+            e1.printStackTrace();
+        }
     }
 
     private Eight() {
@@ -59,7 +63,7 @@ class Eight {
 
         Scanner scanner = new Scanner(System.in);
         // 输入初始位置
-        System.out.println("请输入初始位置（其中输入0代表空白块，例如：2 8 3 1 0 4 7 6 5）：");
+        System.out.println("请输入初始位置（其中输入0代表空白块，例如：8 2 3 1 0 4 7 6 5）：");
         int[][] array = new int[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -67,21 +71,20 @@ class Eight {
             }
         }
         // 输入目标位置
-        System.out.println("请输入目标位置（其中输入0代表空白块，例如：2 8 3 1 4 0 7 6 5）：");
+        System.out.println("请输入目标位置（其中输入0代表空白块，例如：1 2 3 4 5 6 7 8 0）：");
         int[][] target = new int[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 target[i][j] = scanner.nextInt();
             }
         }
-
         EightPuzzle ep = new EightPuzzle(array);
         ep.setDepth(depth);
-        // 设置栈底元素
-        stack.push(ep);
         targetEp = new EightPuzzle(target);
         ep.init(targetEp);
         scanner.close();
+        // 设置栈底元素
+        stack.push(ep);
         // 设置队首元素
         queue.offer(ep);
         open.add(ep);
@@ -90,7 +93,7 @@ class Eight {
     /**
      * 深度优先搜索
      */
-    private void depthFirstSearch() {
+    private void depthFirstSearch() throws CloneNotSupportedException {
         route.clear();
         times = 0;
         System.out.println("深度优先搜索方法路径！");
@@ -101,6 +104,11 @@ class Eight {
             times++;
             // 取出栈顶元素进行查找
             EightPuzzle newState = stack.pop();
+            // 判断是否可解
+            if (newState.isUnSolvable(targetEp)) {
+                System.out.println("目标不可解");
+                return;
+            }
             depth = newState.getDepth();
             newState.getPosition();
             int x = newState.getBlankPosX(), y = newState.getBlankPosY();
@@ -123,7 +131,7 @@ class Eight {
     /**
      * 宽度（广度）优先搜索
      */
-    private void breadthFirstSearch() {
+    private void breadthFirstSearch() throws CloneNotSupportedException {
         route.clear();
         times = 0;
         if (!searchedList.isEmpty()) {
@@ -134,6 +142,11 @@ class Eight {
             times++;
             // 取出队尾元素进行查找
             EightPuzzle newState = queue.poll();
+            // 判断是否可解
+            if (newState.isUnSolvable(targetEp)) {
+                System.out.println("目标不可解");
+                return;
+            }
             depth = newState.getDepth();
             newState.getPosition();
             int x = newState.getBlankPosX(), y = newState.getBlankPosY();
@@ -153,7 +166,7 @@ class Eight {
         System.out.println("查找次数：" + depth);
     }
 
-    private void AStarSearch() {
+    private void AStarSearch() throws CloneNotSupportedException {
         route.clear();
         times = 0;
         if (!searchedList.isEmpty()) {
@@ -165,6 +178,11 @@ class Eight {
             // 取出最小估计函数值进行查找
             Collections.sort(open);
             EightPuzzle newState = open.get(0);
+            // 判断是否可解
+            if (newState.isUnSolvable(targetEp)) {
+                System.out.println("目标不可解");
+                return;
+            }
             open.remove(0);
             depth = newState.getDepth();
             newState.getPosition();
@@ -216,7 +234,7 @@ class Eight {
      * @param y        空格y坐标
      * @param direct   移动方向
      */
-    private void move(EightPuzzle newState, int type, int x, int y, Direction direct) {
+    private void move(EightPuzzle newState, int type, int x, int y, Direction direct) throws CloneNotSupportedException {
         EightPuzzle temp;
         switch (type) {
             //深度优先
