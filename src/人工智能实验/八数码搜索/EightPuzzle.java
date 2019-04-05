@@ -19,8 +19,6 @@ public class EightPuzzle implements Cloneable, Comparable<EightPuzzle> {
      * 当前状态深度
      */
     private int depth;
-
-
     /**
      * 估计函数f(n)
      */
