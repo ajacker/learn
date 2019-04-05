@@ -1,7 +1,6 @@
 package 人工智能实验.字句集;
 
-import java.util.Scanner;
-import java.util.Stack;
+import java.util.*;
 //符号代替申明
 //蕴含符号：⇒
 //非：¬
@@ -10,7 +9,7 @@ import java.util.Stack;
 //全称量词：∀
 //存在量词：∃
 //括号（英文状态）：()
-
+//变量=m-z 常量a-l
 /**
  * @author ajacker
  */
@@ -23,14 +22,74 @@ public class Main {
         System.out.println("输入：" + input);
         System.out.println("------------------------------");
         String first = firstStep(input);
-        System.out.println("------------------------------");
+        System.out.println("---------------消去蕴涵符号---------------");
         System.out.println("第一步结果：" + first);
         System.out.println("------------------------------");
         String second = secondStep(first);
-        System.out.println("------------------------------");
+        System.out.println("---------------减少否定符号辖域---------------");
         System.out.println("第二步结果：" + second);
+        System.out.println("------------------------------");
+        String third = thirdStep(second);
+        System.out.println("---------------对变量标准化---------------");
+        System.out.println("第三步结果：" + third);
     }
 
+    static String thirdStep(String str) {
+        ArrayList<Character> used = new ArrayList<>();
+        char[] variables = {'m', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'};
+        StringBuilder sb = new StringBuilder(str);
+        int last = -1;
+        while (true) {
+            last = sb.indexOf("(", last + 1);
+            if (last == -1) {
+                break;
+            }
+            Stack<Integer> stack = new Stack<>();
+            if (sb.charAt(last + 1) == '∀' || sb.charAt(last + 1) == '∃') {
+                int i = last + 1;
+                int start = i;
+                while (sb.charAt(i) != '(') {
+                    i++;
+                }
+                do {
+                    if (sb.charAt(i) == '(') {
+                        stack.push(i);
+                    } else if (sb.charAt(i) == ')') {
+                        stack.pop();
+                    }
+                    if (!stack.isEmpty()) {
+                        i++;
+                    }
+                } while (!stack.isEmpty());
+                int end = i;
+                for (int j = start; j <= end; j++) {
+                    boolean flag = false;
+                    char current = sb.charAt(j);
+                    //判断是否已经被使用过
+                    for (char c : used) {
+                        if (current == c) {
+                            flag = true;
+                        }
+                    }
+                    //如果使用过就替换
+                    if (flag) {
+                        //选出没有使用过的
+                        for (char c : variables) {
+                            if (!used.contains(c)) {
+                                if (current == str.charAt(last + 2)) {
+                                    sb.setCharAt(j, c);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                used.add(sb.charAt(last + 2));
+            }
+            System.out.println("第三步过程:" + sb.toString());
+        }
+        return sb.toString();
+    }
     static String secondStep(String str) {
         StringBuilder sb = new StringBuilder(str);
         int last;
@@ -106,8 +165,6 @@ public class Main {
                     }
                 } while (!stack.isEmpty());
                 replace = "(" + reverse(toReplace.substring(2, j)) + ")";
-                //System.out.println("aaa" + toReplace.substring(2, j));
-                //System.out.println("bbb" + replace);
             } else {
                 toReplace = temp.substring(0, i + 1);
                 int j = 0;
